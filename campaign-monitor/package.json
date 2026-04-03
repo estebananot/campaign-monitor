@@ -1,0 +1,38 @@
+{
+  "name": "campaign-monitor",
+  "version": "1.0.0",
+  "description": "Sistema de monitoreo de campañas con LLM — Prueba técnica Inlaze",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "evaluate": "ts-node src/index.ts",
+    "summary": "ts-node src/llm/generateSummary.ts",
+    "summary:stream": "ts-node src/llm/generateSummary.ts --stream",
+    "summary:structured": "ts-node src/llm/generateSummary.ts --structured",
+    "worker": "ts-node src/jobs/campaignWorker.ts",
+    "n8n:trigger": "ts-node src/n8n/webhook.ts --trigger",
+    "db:init": "ts-node src/db/sqlite.ts --init",
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "prisma:query": "ts-node prisma/query.ts",
+    "test:review": "ts-node src/review/campaignFetcher.ts --test"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "better-sqlite3": "^9.4.0",
+    "bullmq": "^5.1.0",
+    "p-limit": "^5.0.0",
+    "@prisma/client": "^5.8.0",
+    "ai": "^3.0.0",
+    "@ai-sdk/openai": "^0.0.20",
+    "dotenv": "^16.3.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "ts-node": "^10.9.0",
+    "@types/node": "^20.0.0",
+    "@types/better-sqlite3": "^7.6.0",
+    "prisma": "^5.8.0"
+  }
+}
