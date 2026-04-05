@@ -3,8 +3,8 @@
     "target": "ES2022",
     "module": "commonjs",
     "lib": ["ES2022"],
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "outDir": "./dist/prisma",
+    "rootDir": "./prisma",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -12,6 +12,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
+  "include": ["prisma/**/*"],
   "exclude": ["node_modules", "dist"]
 }

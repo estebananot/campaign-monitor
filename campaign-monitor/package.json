@@ -13,8 +13,8 @@
     "worker": "ts-node src/jobs/campaignWorker.ts",
     "n8n:trigger": "ts-node src/n8n/webhook.ts --trigger",
     "db:init": "ts-node src/db/sqlite.ts --init",
-    "prisma:seed": "ts-node prisma/seed.ts",
-    "prisma:query": "ts-node prisma/query.ts",
+    "prisma:seed": "ts-node -P tsconfig.prisma.json prisma/seed.ts",
+    "prisma:query": "ts-node -P tsconfig.prisma.json prisma/query.ts",
     "test:review": "ts-node src/review/campaignFetcher.ts --test"
   },
   "dependencies": {
