@@ -79,19 +79,19 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.SLACK_WEBHOOK_URL || 'https://httpbin.org/post' }}",
+        "url": "https://discordapp.com/api/webhooks/1490184157375234058/080xdWEubQpHLbFxumklHpgjsu3w9w2esr30O6yri2uZDgRhOy95vjXPoEdCndmoJ2N3",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
             {
-              "name": "text",
-              "value": "=CRITICAL: {{ $json.name }} | Metric: {{ $json.metric }}"
+              "name": "content",
+              "value": "=🚨 **CRITICAL**: {{ $json.name }} | Metric: {{ $json.metric }}"
             }
           ]
         }
       },
-      "id": "slack-critical",
-      "name": "Slack Critical",
+      "id": "discord-critical",
+      "name": "Discord Critical",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "position": [1050, 200]
@@ -119,7 +119,7 @@
         }
       },
       "id": "sheets-warning",
-      "name": "Google Sheets Warning",
+      "name": "Google Sheets Warning (simulated)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "position": [1050, 400]
@@ -173,14 +173,14 @@
       "main": [
         [
           {
-            "node": "Slack Critical",
+            "node": "Discord Critical",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Google Sheets Warning",
+            "node": "Google Sheets Warning (simulated)",
             "type": "main",
             "index": 0
           }
