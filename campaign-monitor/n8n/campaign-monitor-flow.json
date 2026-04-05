@@ -5,41 +5,52 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "campaign-monitor",
-        "responseMode": "immediately"
+        "responseMode": "responseNode"
       },
-      "id": "webhook-trigger",
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
-      "position": [250, 300]
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "campaign-monitor-webhook"
     },
     {
       "parameters": {
-        "jsCode": "const { reports } = $input.first().json;\nreturn reports.map(r => ({ json: r }));"
+        "jsCode": "const payload = $input.first().json;\nconst reports = payload.reports || [];\nreturn reports.map(r => ({ json: r }));"
       },
-      "id": "split-reports",
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
       "name": "Split Reports",
       "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [450, 300]
+      "typeVersion": 2,
+      "position": [470, 300]
     },
     {
       "parameters": {
         "conditions": {
-          "string": [
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
             {
-              "value1": "={{ $json.status }}",
-              "operation": "notEqual",
-              "value2": "ok"
+              "id": "condition-filter-ok",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ok",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
             }
-          ]
+          ],
+          "combinator": "and"
         }
       },
-      "id": "filter-alerts",
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
       "name": "Filter Alerts",
       "type": "n8n-nodes-base.filter",
-      "typeVersion": 1,
-      "position": [650, 300]
+      "typeVersion": 2,
+      "position": [690, 300]
     },
     {
       "parameters": {
@@ -47,34 +58,58 @@
           "values": [
             {
               "conditions": {
-                "string": [
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
                   {
-                    "value1": "={{ $json.status }}",
-                    "value2": "critical"
+                    "id": "condition-critical",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "critical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
                   }
-                ]
+                ],
+                "combinator": "and"
               },
-              "output": 0
+              "renameOutput": true,
+              "outputKey": "critical"
             },
             {
               "conditions": {
-                "string": [
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
                   {
-                    "value1": "={{ $json.status }}",
-                    "value2": "warning"
+                    "id": "condition-warning",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "warning",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
                   }
-                ]
+                ],
+                "combinator": "and"
               },
-              "output": 1
+              "renameOutput": true,
+              "outputKey": "warning"
             }
           ]
         }
       },
-      "id": "switch-status",
+      "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
       "name": "Switch Status",
       "type": "n8n-nodes-base.switch",
-      "typeVersion": 1,
-      "position": [850, 300]
+      "typeVersion": 3,
+      "position": [910, 300]
     },
     {
       "parameters": {
@@ -85,16 +120,17 @@
           "parameters": [
             {
               "name": "content",
-              "value": "=🚨 CRITICAL: {{ $json.name }} | Metric: {{ $json.metric }}"
+              "value": "={{ '\\ud83d\\udea8 CRITICAL: ' + $json.name + ' | Metric: ' + String($json.metric) }}"
             }
           ]
-        }
+        },
+        "options": {}
       },
-      "id": "discord-critical",
+      "id": "e5f6a7b8-c9d0-1234-efab-345678901234",
       "name": "Discord Critical",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
-      "position": [1050, 200]
+      "typeVersion": 4.2,
+      "position": [1130, 200]
     },
     {
       "parameters": {
@@ -116,23 +152,14 @@
               "value": "={{ $json.status }}"
             }
           ]
-        }
+        },
+        "options": {}
       },
-      "id": "sheets-warning",
-      "name": "Warning (simulated)",
+      "id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+      "name": "Warning Simulated",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
-      "position": [1050, 400]
-    },
-    {
-      "parameters": {
-        "jsCode": "console.error('[N8N Error]', $input.first().json);\nreturn $input.all();"
-      },
-      "id": "error-handler",
-      "name": "Error Handler",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [1050, 550]
+      "typeVersion": 4.2,
+      "position": [1130, 400]
     }
   ],
   "connections": {
@@ -180,7 +207,7 @@
         ],
         [
           {
-            "node": "Warning (simulated)",
+            "node": "Warning Simulated",
             "type": "main",
             "index": 0
           }
@@ -190,5 +217,10 @@
   },
   "settings": {
     "executionOrder": "v1"
-  }
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-04-03T18:00:00.000Z",
+  "versionId": "1"
 }
