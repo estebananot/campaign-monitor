@@ -5,24 +5,32 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "campaign-monitor",
-        "responseMode": "responseNode"
+        "options": {}
       },
-      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "id": "df46b6e2-f85f-41ef-8589-6aadc2cee3a8",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 300],
-      "webhookId": "campaign-monitor-webhook"
+      "position": [
+        -880,
+        112
+      ],
+      "webhookId": "campaign-monitor-webhook",
+      "alwaysOutputData": false,
+      "executeOnce": false
     },
     {
       "parameters": {
-        "jsCode": "const payload = $input.first().json;\nconst reports = payload.reports || [];\nreturn reports.map(r => ({ json: r }));"
+        "jsCode": "const body = $input.first().json.body;\nconst reports = body.reports || [];\nreturn reports.map(r => ({ json: r }));"
       },
-      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "id": "ab5a33aa-a95f-48ed-837f-866834e0698f",
       "name": "Split Reports",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [470, 300]
+      "position": [
+        -656,
+        112
+      ]
     },
     {
       "parameters": {
@@ -30,7 +38,8 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "strict",
+            "version": 1
           },
           "conditions": [
             {
@@ -44,13 +53,17 @@
             }
           ],
           "combinator": "and"
-        }
+        },
+        "options": {}
       },
-      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "id": "c96104d5-1309-417d-9acc-d90c8d0cc9b4",
       "name": "Filter Alerts",
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2,
-      "position": [690, 300]
+      "position": [
+        -448,
+        112
+      ]
     },
     {
       "parameters": {
@@ -61,7 +74,8 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict"
+                  "typeValidation": "strict",
+                  "version": 1
                 },
                 "conditions": [
                   {
@@ -84,7 +98,8 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict"
+                  "typeValidation": "strict",
+                  "version": 1
                 },
                 "conditions": [
                   {
@@ -103,13 +118,17 @@
               "outputKey": "warning"
             }
           ]
-        }
+        },
+        "options": {}
       },
-      "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+      "id": "80424751-7b85-4938-89a9-c3741056ac85",
       "name": "Switch Status",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [910, 300]
+      "position": [
+        -224,
+        112
+      ]
     },
     {
       "parameters": {
@@ -126,11 +145,14 @@
         },
         "options": {}
       },
-      "id": "e5f6a7b8-c9d0-1234-efab-345678901234",
+      "id": "8ebe66ec-c6f4-4a6a-a072-8ff31ac78892",
       "name": "Discord Critical",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1130, 200]
+      "position": [
+        0,
+        0
+      ]
     },
     {
       "parameters": {
@@ -155,13 +177,17 @@
         },
         "options": {}
       },
-      "id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+      "id": "9b8f14d1-3057-44a2-9f8c-c433a72f4e63",
       "name": "Warning Simulated",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1130, 400]
+      "position": [
+        0,
+        208
+      ]
     }
   ],
+  "pinData": {},
   "connections": {
     "Webhook": {
       "main": [
@@ -215,12 +241,15 @@
       ]
     }
   },
+  "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate"
   },
-  "staticData": null,
-  "tags": [],
-  "triggerCount": 1,
-  "updatedAt": "2026-04-03T18:00:00.000Z",
-  "versionId": "1"
+  "versionId": "fcf894d9-9146-431d-b06f-03a82c60a346",
+  "meta": {
+    "instanceId": "e146a2fdf4f2ba3381f8041da4d036731bfd78493cc793aa1399b934f683e03c"
+  },
+  "id": "OuhwyeZGFbIBp1fQ",
+  "tags": []
 }
