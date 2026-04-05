@@ -20,12 +20,14 @@
   "dependencies": {
     "@ai-sdk/openai": "^0.0.20",
     "@prisma/client": "^5.8.0",
+    "@types/pdfkit": "^0.17.5",
     "ai": "^3.0.0",
     "axios": "^1.6.0",
     "better-sqlite3": "^12.8.0",
     "bullmq": "^5.1.0",
     "dotenv": "^16.3.0",
     "p-limit": "^5.0.0",
+    "pdfkit": "^0.18.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {

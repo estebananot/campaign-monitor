@@ -2,6 +2,7 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import PDFDocument from 'pdfkit';
 import { CampaignReport } from '../evaluation/types';
 import { SYSTEM_PROMPT, buildUserPrompt } from './prompts';
 
@@ -76,6 +77,62 @@ export async function generateCampaignSummary(reports: CampaignReport[]): Promis
   }
 }
 
+function generatePDF(result: LLMSummary, reports: CampaignReport[]): string {
+  const dataDir = path.join(process.cwd(), 'data');
+  fs.mkdirSync(dataDir, { recursive: true });
+  const pdfPath = path.join(dataDir, 'campaign-report.pdf');
+
+  const doc = new PDFDocument({ margin: 50 });
+  const stream = fs.createWriteStream(pdfPath);
+  doc.pipe(stream);
+
+  doc.fontSize(20).text('Campaign Monitor — Resumen Ejecutivo', { align: 'center' });
+  doc.moveDown();
+  doc.fontSize(10).fillColor('gray').text(`Generado: ${result.generatedAt.toLocaleString()}`, { align: 'center' });
+  doc.text(`Modelo: ${result.model}`);
+  doc.moveDown();
+
+  doc.fontSize(14).fillColor('black').text('Resumen');
+  doc.fontSize(11).text(result.summary);
+  doc.moveDown();
+
+  if (result.criticalCampaigns.length > 0) {
+    doc.fontSize(14).fillColor('red').text('Campañas Críticas');
+    doc.moveDown(0.5);
+    result.criticalCampaigns.forEach(c => {
+      doc.fontSize(11).fillColor('black').text(`• ${c.name} (métrica: ${c.metric})`);
+      doc.fontSize(10).fillColor('gray').text(`  Acción: ${c.action}`);
+    });
+    doc.moveDown();
+  }
+
+  if (result.warningCount > 0) {
+    doc.fontSize(14).fillColor('orange').text(`Campañas en Warning: ${result.warningCount}`);
+    doc.moveDown();
+  }
+
+  if (result.recommendedActions.length > 0) {
+    doc.fontSize(14).fillColor('black').text('Acciones Recomendadas');
+    doc.moveDown(0.5);
+    result.recommendedActions.forEach(a => {
+      doc.fontSize(11).text(`• ${a}`);
+    });
+    doc.moveDown();
+  }
+
+  doc.fontSize(14).text('Detalle de Campañas');
+  doc.moveDown(0.5);
+  doc.fontSize(9);
+  reports.forEach(r => {
+    const color = r.status === 'critical' ? 'red' : r.status === 'warning' ? 'orange' : 'green';
+    doc.fillColor(color).text(`${r.status.toUpperCase().padEnd(8)} | ${r.metric.toFixed(4).padStart(6)} | ${r.name}`);
+  });
+
+  doc.end();
+
+  return pdfPath;
+}
+
 if (require.main === module) {
   const reportPath = path.join(process.cwd(), 'data', 'last-report.json');
   if (!fs.existsSync(reportPath)) {
@@ -102,5 +159,8 @@ if (require.main === module) {
     const summaryPath = path.join(process.cwd(), 'data', 'last-summary.json');
     fs.writeFileSync(summaryPath, JSON.stringify(result, null, 2));
     console.log('\n[File] Guardado en data/last-summary.json');
+
+    const pdfPath = generatePDF(result, reports);
+    console.log(`[File] PDF generado en ${pdfPath}`);
   });
 }
