@@ -42,7 +42,7 @@ export class CoinGeckoProvider implements DataProvider {
     return response.data.map((coin) => ({
       id: coin.id,
       name: coin.name,
-      rawMetric: Math.max(0, (coin.price_change_percentage_24h ?? 0) + 5),
+      rawMetric: parseFloat(((coin.price_change_percentage_24h ?? 0) + 5).toFixed(4)),
     }));
   }
 }

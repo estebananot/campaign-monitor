@@ -19,12 +19,12 @@ el LLM: el agente razona antes de actuar y registra su justificación.
 ## Flujo de decisión (ReAct loop)
 
 ```
-1. Observe  → query_campaigns(status='critical')
-2. Think    → "Campaña X tiene ROAS 0.4 hace 3 ciclos. Umbral superado."
-3. Act      → log_action(action='pause', justification='ROAS < 0.5 por 3 ciclos')
+1. Observe  -> query_campaigns(status='critical')
+2. Think    -> "Campaña X tiene ROAS 0.4 hace 3 ciclos. Umbral superado."
+3. Act      -> log_action(action='pause', justification='ROAS < 0.5 por 3 ciclos')
               pause_campaign(id='X')
               send_alert(msg='Campaña X pausada. ROAS: 0.4')
-4. Observe  → confirmar que la pausa fue exitosa
+4. Observe  -> confirmar que la pausa fue exitosa
 5. Repeat o Stop
 ```
 
@@ -61,27 +61,28 @@ esperar un ciclo más". Eso no es programable con if/else.
 ## Diagrama ASCII
 
 ```
-┌──────────────────────────────────────────────────┐
-│                   Agente IA                      │
-│                                                  │
-│  ┌──────────────────────────────────────────┐    │
-│  │           LLM (orquestador)              │    │
-│  │  recibe métricas → razona → elige tool   │    │
-│  └─────────────────┬────────────────────────┘    │
-│                    │ tool-call                   │
-│        ┌───────────▼─────────────┐               │
-│        │         Tools           │               │
-│        │  query_campaigns        │               │
-│        │  pause_campaign         │               │
-│        │  send_alert             │               │
-│        │  log_action ← siempre   │               │
-│        └───────────┬─────────────┘               │
-│                    │ resultado                   │
-│  ┌─────────────────▼────────────────────────┐    │
-│  │  ¿objetivo cumplido? → stop : continue   │    │
-│  └──────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────┘
-            │
-            ▼ toda acción escribe en:
-       audit_log { action, justification, timestamp }
+┌───────────────────────────────────────────────────┐
+│                   Agente IA                       │
+│                                                   │
+│    ┌──────────────────────────────────────────┐   │
+│    │           LLM (orquestador)              │   │
+│    │  recibe métricas → razona → elige tool   │   │
+│    └────────────────────┬─────────────────────┘   │
+│                         │ tool-call               │
+│             ┌───────────▼─────────────┐           │
+│             │         Tools           │           │
+│             │  query_campaigns        │           │
+│             │  pause_campaign         │           │
+│             │  send_alert             │           │
+│             │  log_action ← siempre   │           │
+│             └───────────┬─────────────┘           │
+│                         │ resultado               │
+│    ┌────────────────────▼─────────────────────┐   │
+│    │  ¿objetivo cumplido? → stop : continue   │   │
+│    └──────────────────────────────────────────┘   │
+└───────────────────────────────────────────────────┘
+                          │
+                          ▼ 
+                toda acción escribe en:
+      audit_log { action, justification, timestamp }
 ```
