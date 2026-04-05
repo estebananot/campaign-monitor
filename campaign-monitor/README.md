@@ -84,21 +84,39 @@ cp .env.example .env
 
 ## Uso
 
+### Flujo completo
+
 ```bash
-# Ejecutar evaluación completa
+# 1. Obtener datos de CoinGecko, evaluar umbrales, guardar en SQLite y JSON
 npm run evaluate
 
-# Inicializar base de datos
-npm run db:init
+# 2. Generar resumen con LLM, crear PDF y enviar a Discord
+npm run summary
+```
 
-# Generar resumen con LLM (requiere API key)
+### Comandos individuales
+
+```bash
+# Evaluar campañas (API → evaluación → SQLite → JSON → N8N webhook)
+npm run evaluate
+
+# Generar resumen LLM + PDF + Discord
 npm run summary
 
-# Probar code review
+# Resumen estructurado (JSON)
+npm run summary:structured
+
+# Inicializar base de datos SQLite
+npm run db:init
+
+# Probar code review (filtra CTR < 0.02)
 npm run test:review
 
-# Ejecutar query de Prisma
+# Ejecutar query de Prisma (peor ROAS por operador)
 npm run prisma:query
+
+# Ejecutar BullMQ worker (requiere Redis)
+npm run worker
 ```
 
 ## Code Review (Parte 3A)
@@ -170,11 +188,61 @@ Operadores con peor ROAS promedio (últimos 7 días):
 
 ## Variables de entorno
 
-Ver `.env.example` para todas las opciones. Las mínimas requeridas:
-
 ```env
+# API externa
 COINGECKO_API_URL=https://api.coingecko.com/api/v3
-COINGECKO_TOP_N=10
+COINGECKO_TOP_N=50
+
+# Umbrales
 THRESHOLD_WARNING=2.5
 THRESHOLD_CRITICAL=1.0
+
+# N8N Webhook
+N8N_WEBHOOK_URL=http://localhost:5678/webhook/campaign-monitor
+
+# Discord Webhook (para resumen LLM)
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/xxx/yyy
+
+# LLM
+LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=sk-or-tu-key
+OPENROUTER_MODEL=openai/gpt-3.5-turbo
+
+# Redis (para BullMQ)
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+JOB_INTERVAL_MINUTES=5
 ```
+
+## BullMQ + Redis (Diferencial)
+
+El worker de BullMQ ejecuta el pipeline automáticamente cada X minutos.
+
+### Instalar Redis
+
+```bash
+# Docker (recomendado)
+docker run -d -p 6379:6379 --name redis redis:alpine
+
+# Windows (usar Memurai o WSL)
+# macOS
+brew install redis && brew services start redis
+
+# Ubuntu/Debian
+sudo apt install redis-server && sudo systemctl start redis
+```
+
+### Ejecutar worker
+
+```bash
+npm run worker
+```
+
+El worker ejecutará automáticamente:
+- Consulta CoinGecko
+- Evalúa umbrales
+- Guarda en SQLite
+- Envía a N8N
+- Genera resumen LLM
+
+Cada 5 minutos (configurable con `JOB_INTERVAL_MINUTES` en `.env`).
