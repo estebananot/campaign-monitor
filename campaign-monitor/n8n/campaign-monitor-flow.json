@@ -185,6 +185,30 @@
         0,
         208
       ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        368
+      ],
+      "id": "a801e37a-2257-4cf8-bd16-2d909c1a4f45",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const errorData = $input.first().json;\nconsole.log('[N8N Error Handler]', JSON.stringify(errorData, null, 2));\nreturn [{ \n  json: { \n    errorMessage: errorData.execution?.error?.message || 'Unknown error',\n    nodeId: errorData.execution?.lastNodeExecuted || 'unknown',\n    timestamp: new Date().toISOString(),\n    executionId: errorData.execution?.id || 'unknown'\n  } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -608,
+        368
+      ],
+      "id": "11b4a7f8-f3b8-434c-8b48-a07f9205f908",
+      "name": "Code in JavaScript"
     }
   ],
   "pinData": {},
@@ -239,6 +263,17 @@
           }
         ]
       ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -246,7 +281,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "fcf894d9-9146-431d-b06f-03a82c60a346",
+  "versionId": "5b93e73d-ce8a-4aca-8f8e-263099937064",
   "meta": {
     "instanceId": "e146a2fdf4f2ba3381f8041da4d036731bfd78493cc793aa1399b934f683e03c"
   },
