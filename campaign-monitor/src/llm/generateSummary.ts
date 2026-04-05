@@ -100,15 +100,10 @@ function generatePDF(result: LLMSummary, reports: CampaignReport[]): string {
   fs.mkdirSync(dataDir, { recursive: true });
   const pdfPath = path.join(dataDir, 'campaign-report.pdf');
 
-  const doc = new PDFDocument({ 
-    margin: 50, 
-    size: 'A4',
-    info: { Title: 'Campaign Monitor - Resumen Ejecutivo', Author: 'Campaign Monitor System' }
-  });
+  const doc = new PDFDocument({ margin: 60, size: 'A4' });
   const stream = fs.createWriteStream(pdfPath);
   doc.pipe(stream);
 
-  const pageWidth = doc.page.width - 100;
   const stats = {
     total: reports.length,
     ok: reports.filter(r => r.status === 'ok').length,
@@ -117,91 +112,63 @@ function generatePDF(result: LLMSummary, reports: CampaignReport[]): string {
     avgMetric: reports.reduce((sum, r) => sum + r.metric, 0) / reports.length,
   };
 
-  doc.rect(40, 40, doc.page.width - 80, 80).fill('#1a1a2e');
-  doc.fontSize(24).fillColor('white').text('Campaign Monitor', 50, 55, { width: pageWidth, align: 'center' });
-  doc.fontSize(12).text('Resumen Ejecutivo', 50, 85, { width: pageWidth, align: 'center' });
-  doc.fontSize(9).text(result.generatedAt.toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' }), 50, 105, { width: pageWidth, align: 'center' });
+  doc.fontSize(22).text('Campaign Monitor', { align: 'center' });
+  doc.fontSize(14).text('Resumen Ejecutivo', { align: 'center' });
+  doc.moveDown(0.3);
+  doc.fontSize(9).fillColor('gray').text(result.generatedAt.toLocaleString('es-ES'), { align: 'center' });
   doc.fillColor('black');
-  doc.y = 140;
+  doc.moveDown(2);
 
-  doc.fontSize(10).fillColor('#666').text(`Modelo: ${result.model}`, { align: 'right' });
+  doc.fontSize(12).text('Resumen Ejecutivo', { underline: true });
+  doc.moveDown(0.5);
+  doc.fontSize(10).text(result.summary, { lineGap: 3 });
   doc.moveDown(1.5);
 
-  doc.fontSize(18).fillColor('#1a1a2e').text('Resumen Ejecutivo', 50, doc.y, { width: pageWidth });
+  doc.fontSize(12).text('Metricas del Portafolio', { underline: true });
   doc.moveDown(0.5);
-  doc.fontSize(11).fillColor('#333').text(result.summary, { width: pageWidth, lineGap: 4, paragraphGap: 8 });
-  doc.moveDown();
-
-  doc.fontSize(14).fillColor('#1a1a2e').text('Métricas del Portafolio', 50, doc.y, { width: pageWidth });
-  doc.moveDown(0.5);
-  
-  const metricsY = doc.y;
-  const boxWidth = 120;
-  const boxGap = 20;
-  const startX = 50;
-
-  doc.rect(startX, metricsY, boxWidth, 50).fillAndStroke('#e8f5e9', '#4caf50');
-  doc.fontSize(20).fillColor('#2e7d32').text(String(stats.ok), startX, metricsY + 8, { width: boxWidth, align: 'center' });
-  doc.fontSize(9).text('OK', startX, metricsY + 32, { width: boxWidth, align: 'center' });
-
-  doc.rect(startX + boxWidth + boxGap, metricsY, boxWidth, 50).fillAndStroke('#fff3e0', '#ff9800');
-  doc.fontSize(20).fillColor('#e65100').text(String(stats.warning), startX + boxWidth + boxGap, metricsY + 8, { width: boxWidth, align: 'center' });
-  doc.fontSize(9).text('Warning', startX + boxWidth + boxGap, metricsY + 32, { width: boxWidth, align: 'center' });
-
-  doc.rect(startX + (boxWidth + boxGap) * 2, metricsY, boxWidth, 50).fillAndStroke('#ffebee', '#f44336');
-  doc.fontSize(20).fillColor('#c62828').text(String(stats.critical), startX + (boxWidth + boxGap) * 2, metricsY + 8, { width: boxWidth, align: 'center' });
-  doc.fontSize(9).text('Critical', startX + (boxWidth + boxGap) * 2, metricsY + 32, { width: boxWidth, align: 'center' });
-
-  doc.y = metricsY + 65;
-  doc.fontSize(10).fillColor('#333').text(`Total campañas: ${stats.total} | Métrica promedio: ${stats.avgMetric.toFixed(4)}`);
-  doc.moveDown();
+  doc.fontSize(10);
+  doc.text(`  OK:       ${stats.ok} campañas`);
+  doc.text(`  Warning:  ${stats.warning} campañas`);
+  doc.text(`  Critical: ${stats.critical} campañas`);
+  doc.moveDown(0.3);
+  doc.text(`  Total:    ${stats.total} campañas`);
+  doc.text(`  Promedio: ${stats.avgMetric.toFixed(4)}`);
+  doc.moveDown(1.5);
 
   if (result.criticalCampaigns.length > 0) {
-    doc.moveDown();
-    doc.fontSize(14).fillColor('#1a1a2e').text('Campañas Críticas - Acción Requerida', 50, doc.y, { width: pageWidth });
+    doc.fontSize(12).text('Campanas Criticas', { underline: true });
     doc.moveDown(0.5);
+    doc.fontSize(10);
     result.criticalCampaigns.forEach(c => {
-      const cardY = doc.y;
-      doc.rect(50, cardY, pageWidth, 50).fillAndStroke('#ffebee', '#f44336');
-      doc.fillColor('#c62828').fontSize(12).text(c.name, 60, cardY + 8, { width: pageWidth - 20 });
-      doc.fillColor('#333').fontSize(9).text(`Métrica: ${c.metric.toFixed(4)}`, 60, cardY + 25, { width: pageWidth - 20 });
-      doc.fillColor('#666').fontSize(9).text(`Acción: ${c.action}`, 60, cardY + 38, { width: pageWidth - 20 });
-      doc.y = cardY + 60;
+      doc.text(`  [CRITICAL] ${c.name}`, { indent: 10 });
+      doc.text(`  Metrica: ${c.metric.toFixed(4)}`, { indent: 10 });
+      doc.text(`  Accion: ${c.action}`, { indent: 10 });
+      doc.moveDown(0.5);
     });
+    doc.moveDown(1);
   }
 
   if (result.recommendedActions.length > 0) {
-    doc.moveDown();
-    doc.fontSize(14).fillColor('#1a1a2e').text('Acciones Recomendadas', 50, doc.y, { width: pageWidth });
+    doc.fontSize(12).text('Acciones Recomendadas', { underline: true });
     doc.moveDown(0.5);
+    doc.fontSize(10);
     result.recommendedActions.forEach((a, i) => {
-      doc.fontSize(10).fillColor('#1a1a2e').text(`${i + 1}.`, 60, doc.y, { continued: true, width: 20 });
-      doc.fillColor('#333').text(` ${a}`, { width: pageWidth - 30, indent: 10 });
+      doc.text(`  ${i + 1}. ${a}`, { indent: 10 });
       doc.moveDown(0.3);
     });
-    doc.moveDown();
+    doc.moveDown(1.5);
   }
 
-  doc.moveDown();
-  doc.fontSize(14).fillColor('#1a1a2e').text('Detalle de Campañas', 50, doc.y, { width: pageWidth });
+  doc.fontSize(12).text('Detalle de Campanas', { underline: true });
   doc.moveDown(0.5);
-  
-  doc.fontSize(9).fillColor('#333');
-  reports.forEach((r) => {
-    if (doc.y > doc.page.height - 80) {
-      doc.addPage();
-      doc.y = 50;
-    }
-    
-    const statusColor = r.status === 'critical' ? '#c62828' : r.status === 'warning' ? '#e65100' : '#2e7d32';
-    
-    doc.fillColor(statusColor).fontSize(9).text(`● ${r.status.toUpperCase()}`, 50, doc.y, { continued: true, width: 80 });
-    doc.fillColor('#333').text(`  ${r.metric.toFixed(4).padStart(6)}  |  ${r.name}`, { width: pageWidth - 80 });
-    doc.moveDown(0.3);
+  doc.fontSize(9);
+  reports.forEach(r => {
+    const statusLabel = r.status === 'critical' ? '[CRITICAL]' : r.status === 'warning' ? '[WARNING]' : '[OK]      ';
+    doc.text(`  ${statusLabel}  ${r.metric.toFixed(4).padStart(6)}  -  ${r.name}`);
+    doc.moveDown(0.2);
   });
 
   doc.end();
-
   return pdfPath;
 }
 
