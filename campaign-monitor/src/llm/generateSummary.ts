@@ -8,6 +8,35 @@ import { SYSTEM_PROMPT, buildUserPrompt } from './prompts';
 
 dotenv.config();
 
+async function sendSummaryToDiscord(result: LLMSummary): Promise<void> {
+  const webhookUrl = 'https://discordapp.com/api/webhooks/1490184157375234058/080xdWEubQpHLbFxumklHpgjsu3w9w2esr30O6yri2uZDgRhOy95vjXPoEdCndmoJ2N3';
+  
+  let message = `📊 **Resumen Ejecutivo - Campaign Monitor**\n\n`;
+  message += `${result.summary}\n\n`;
+  
+  if (result.criticalCampaigns.length > 0) {
+    message += `🚨 **Campañas Críticas:**\n`;
+    result.criticalCampaigns.forEach(c => {
+      message += `• ${c.name} (${c.metric.toFixed(4)}): ${c.action}\n`;
+    });
+    message += `\n`;
+  }
+  
+  if (result.recommendedActions.length > 0) {
+    message += `💡 **Acciones Recomendadas:**\n`;
+    result.recommendedActions.forEach((a, i) => {
+      message += `${i + 1}. ${a}\n`;
+    });
+  }
+
+  try {
+    await axios.post(webhookUrl, { content: message.substring(0, 2000) }, { timeout: 5000 });
+    console.log('[Discord] Resumen enviado al canal');
+  } catch (err) {
+    console.error('[Discord] Error al enviar:', (err as Error).message);
+  }
+}
+
 export type LLMSummary = {
   generatedAt: Date;
   model: string;
@@ -210,5 +239,7 @@ if (require.main === module) {
 
     const pdfPath = generatePDF(result, reports);
     console.log(`[File] PDF generado en ${pdfPath}`);
+
+    sendSummaryToDiscord(result);
   });
 }
