@@ -93,6 +93,79 @@ npm run db:init
 
 # Generar resumen con LLM (requiere API key)
 npm run summary
+
+# Probar code review
+npm run test:review
+
+# Ejecutar query de Prisma
+npm run prisma:query
+```
+
+## Code Review (Parte 3A)
+
+Se recibió un fragmento de código con 4 problemas identificados:
+
+### Problemas encontrados
+
+| Bug | Ubicación | Problema | Fix |
+|-----|-----------|----------|-----|
+| 1 | Línea 10 | División por cero: `clicks / impressions` | `impressions > 0 ? clicks / impressions : 0` |
+| 2 | Línea 11 | Sin try/catch — un error rompe todo el batch | try/catch por campaña, error aislado |
+| 3 | Línea 15 | Tipo implícito `any[]` en results | Interfaz `CampaignResult` explícita |
+| 4 | Línea 17 | Loop secuencial — peticiones una por una | `pLimit(3)` — concurrencia controlada (máx 3 simultáneas) |
+
+### Refactorización aplicada
+
+La refactorización es **quirúrgica**: se corrigieron los bugs sin reescribir toda la función. Se mantuvo la estructura original pero se agregaron:
+- Tipado explícito con interfaz `CampaignResult`
+- Manejo de errores por campaña (error aislado no rompe el batch)
+- Concurrencia controlada con `p-limit` (máximo 3 peticiones simultáneas)
+- Función adicional `getLowCTRCampaigns()` para filtrar CTR < 0.02
+
+## Query de Prisma (Parte 3B)
+
+### Estructura del schema
+
+```prisma
+model Operator {
+  id        String     @id @default(cuid())
+  name      String
+  campaigns Campaign[]
+}
+
+model Campaign {
+  id         String           @id @default(cuid())
+  name       String
+  operatorId String
+  operator   Operator         @relation(fields: [operatorId], references: [id])
+  metrics    CampaignMetric[]
+}
+
+model CampaignMetric {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  roas       Float
+  recordedAt DateTime
+}
+```
+
+### Query implementada
+
+La query retorna los operadores con **peor ROAS promedio de los últimos 7 días**, agrupados por operador y ordenados de menor a mayor ROAS.
+
+**¿Por qué `findMany` con post-proceso?**
+
+Prisma no soporta agrupar por campos de relaciones anidadas sin raw SQL. Se usa `findMany` con nested `select` para traer operadores → campañas → métricas (filtradas por fecha), y luego se calcula el promedio en TypeScript. Esto mantiene el tipado fuerte sin perder funcionalidad.
+
+### Ejemplo de output
+
+```
+Operadores con peor ROAS promedio (últimos 7 días):
+
+1. Beta Media           | Avg ROAS: 1.2623 | Campañas: 1
+2. Acme Corp            | Avg ROAS: 1.7634 | Campañas: 1
+3. Gamma Ads            | Avg ROAS: 1.828  | Campañas: 1
 ```
 
 ## Variables de entorno
