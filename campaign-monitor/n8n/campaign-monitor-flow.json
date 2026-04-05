@@ -81,19 +81,13 @@
         "method": "POST",
         "url": "https://discordapp.com/api/webhooks/1490184157375234058/080xdWEubQpHLbFxumklHpgjsu3w9w2esr30O6yri2uZDgRhOy95vjXPoEdCndmoJ2N3",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "content",
-              "value": "=🚨 **CRITICAL**: {{ $json.name }} | Metric: {{ $json.metric }}"
-            }
-          ]
-        }
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: '🚨 CRITICAL: ' + $json.name + ' | Metric: ' + $json.metric }) }}"
       },
       "id": "discord-critical",
       "name": "Discord Critical",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
+      "typeVersion": 4.1,
       "position": [1050, 200]
     },
     {
@@ -101,27 +95,13 @@
         "method": "POST",
         "url": "https://httpbin.org/post",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "name",
-              "value": "={{ $json.name }}"
-            },
-            {
-              "name": "metric",
-              "value": "={{ $json.metric }}"
-            },
-            {
-              "name": "status",
-              "value": "={{ $json.status }}"
-            }
-          ]
-        }
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ name: $json.name, metric: $json.metric, status: $json.status }) }}"
       },
       "id": "sheets-warning",
-      "name": "Google Sheets Warning (simulated)",
+      "name": "Warning (simulated)",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
+      "typeVersion": 4.1,
       "position": [1050, 400]
     },
     {
@@ -180,7 +160,7 @@
         ],
         [
           {
-            "node": "Google Sheets Warning (simulated)",
+            "node": "Warning (simulated)",
             "type": "main",
             "index": 0
           }
@@ -191,9 +171,5 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "tags": [
-    {
-      "name": "campaign-monitor"
-    }
-  ]
+  "pinData": {}
 }
