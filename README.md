@@ -79,7 +79,6 @@ campaign-monitor/
 ```bash
 cd campaign-monitor
 npm install
-cp .env.example .env
 ```
 
 ## Uso
