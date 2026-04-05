@@ -8,9 +8,14 @@ import { SYSTEM_PROMPT, buildUserPrompt } from './prompts';
 
 dotenv.config();
 
-async function sendSummaryToDiscord(result: LLMSummary): Promise<void> {
-  const webhookUrl = 'https://discordapp.com/api/webhooks/1490184157375234058/080xdWEubQpHLbFxumklHpgjsu3w9w2esr30O6yri2uZDgRhOy95vjXPoEdCndmoJ2N3';
+async function sendSummaryToDiscord(result: LLMSummary, pdfPath: string): Promise<void> {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
   
+  if (!webhookUrl) {
+    console.warn('[Discord] DISCORD_WEBHOOK_URL no configurado, omitiendo envío');
+    return;
+  }
+
   let message = `📊 **Resumen Ejecutivo - Campaign Monitor**\n\n`;
   message += `${result.summary}\n\n`;
   
@@ -30,8 +35,15 @@ async function sendSummaryToDiscord(result: LLMSummary): Promise<void> {
   }
 
   try {
-    await axios.post(webhookUrl, { content: message.substring(0, 2000) }, { timeout: 5000 });
-    console.log('[Discord] Resumen enviado al canal');
+    const FormData = (await import('form-data')).default;
+    const form = new FormData();
+    
+    const pdfBuffer = fs.readFileSync(pdfPath);
+    form.append('payload_json', JSON.stringify({ content: message.substring(0, 2000) }));
+    form.append('files[0]', pdfBuffer, { filename: 'campaign-report.pdf', contentType: 'application/pdf' });
+
+    await axios.post(webhookUrl, form, { headers: form.getHeaders(), timeout: 10000 });
+    console.log('[Discord] Resumen y PDF enviados al canal');
   } catch (err) {
     console.error('[Discord] Error al enviar:', (err as Error).message);
   }
@@ -240,6 +252,6 @@ if (require.main === module) {
     const pdfPath = generatePDF(result, reports);
     console.log(`[File] PDF generado en ${pdfPath}`);
 
-    sendSummaryToDiscord(result);
+    sendSummaryToDiscord(result, pdfPath);
   });
 }
