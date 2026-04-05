@@ -81,13 +81,19 @@
         "method": "POST",
         "url": "https://discordapp.com/api/webhooks/1490184157375234058/080xdWEubQpHLbFxumklHpgjsu3w9w2esr30O6yri2uZDgRhOy95vjXPoEdCndmoJ2N3",
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ content: '🚨 CRITICAL: ' + $json.name + ' | Metric: ' + $json.metric }) }}"
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "=🚨 CRITICAL: {{ $json.name }} | Metric: {{ $json.metric }}"
+            }
+          ]
+        }
       },
       "id": "discord-critical",
       "name": "Discord Critical",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
+      "typeVersion": 3,
       "position": [1050, 200]
     },
     {
@@ -95,18 +101,32 @@
         "method": "POST",
         "url": "https://httpbin.org/post",
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ name: $json.name, metric: $json.metric, status: $json.status }) }}"
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "={{ $json.name }}"
+            },
+            {
+              "name": "metric",
+              "value": "={{ $json.metric }}"
+            },
+            {
+              "name": "status",
+              "value": "={{ $json.status }}"
+            }
+          ]
+        }
       },
       "id": "sheets-warning",
       "name": "Warning (simulated)",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
+      "typeVersion": 3,
       "position": [1050, 400]
     },
     {
       "parameters": {
-        "jsCode": "const error = $input.first().json;\nconsole.error('[N8N Error]', error);\nreturn [{ json: { error: error.message || 'Unknown error', timestamp: new Date().toISOString() } }];"
+        "jsCode": "console.error('[N8N Error]', $input.first().json);\nreturn $input.all();"
       },
       "id": "error-handler",
       "name": "Error Handler",
@@ -170,6 +190,5 @@
   },
   "settings": {
     "executionOrder": "v1"
-  },
-  "pinData": {}
+  }
 }
