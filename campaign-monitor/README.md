@@ -22,14 +22,32 @@ CoinGecko es una API pública que no requiere API key para el endpoint `/coins/m
 
 ### ¿Por qué esos umbrales?
 
+Los umbrales son los definidos en la prueba técnica:
+
 | Umbral | Valor | Significado |
 |--------|-------|-------------|
 | Warning | < 2.5 | Atención requerida |
 | Critical | < 1.0 | Acción inmediata |
 
-La fórmula de normalización es: `rawMetric = price_change_24h + 5`
+### Fórmula de normalización
 
-Esto centra los valores alrededor de 5, permitiendo que la mayoría de monedas estén en estado `ok` durante mercados estables, y que caigan a `warning` o `critical` durante caídas fuertes.
+```
+rawMetric = price_change_percentage_24h + 5
+```
+
+**¿Por qué +5?**
+
+CoinGecko devuelve el cambio de precio en porcentaje (ej: -3.5%, +2.1%). Al sumar +5:
+- Valores típicos quedan entre 2 y 8 (rango de "métrica de campaña")
+- Permite que caigan en los tres estados: ok (≥2.5), warning (<2.5), critical (<1.0)
+- Simula el comportamiento real de métricas publicitarias donde algunos días son mejores que otros
+
+**Nota sobre variabilidad:**
+
+Los datos de CoinGecko dependen del mercado de criptomonedas en tiempo real. Si todos los valores están en `ok`, significa que el mercado está estable ese día. Para forzar variabilidad en pruebas, se puede:
+1. Cambiar temporalmente los umbrales en `.env`
+2. Usar una API mock que devuelva datos variados
+3. Esperar a un día de volatilidad en el mercado
 
 ## Estructura del proyecto
 

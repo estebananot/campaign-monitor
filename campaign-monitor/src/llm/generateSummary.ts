@@ -186,40 +186,18 @@ function generatePDF(result: LLMSummary, reports: CampaignReport[]): string {
   doc.fontSize(14).fillColor('#1a1a2e').text('Detalle de Campañas', 50, doc.y, { width: pageWidth });
   doc.moveDown(0.5);
   
-  const tableTop = doc.y;
-  const colWidths = [70, 90, 60, 280];
-  const headers = ['Status', 'Métrica', 'ID', 'Nombre'];
-  
-  doc.rect(50, tableTop, pageWidth, 20).fill('#1a1a2e');
-  doc.fontSize(9).fillColor('white');
-  let xPos = 55;
-  headers.forEach((h, i) => {
-    doc.text(h, xPos, tableTop + 5, { width: colWidths[i] });
-    xPos += colWidths[i];
-  });
-  
-  let rowY = tableTop + 25;
-  reports.forEach((r, index) => {
-    if (rowY > doc.page.height - 100) {
+  doc.fontSize(9).fillColor('#333');
+  reports.forEach((r) => {
+    if (doc.y > doc.page.height - 80) {
       doc.addPage();
-      rowY = 50;
+      doc.y = 50;
     }
     
-    const bgColor = index % 2 === 0 ? '#f5f5f5' : 'white';
-    doc.rect(50, rowY, pageWidth, 18).fill(bgColor);
-    
     const statusColor = r.status === 'critical' ? '#c62828' : r.status === 'warning' ? '#e65100' : '#2e7d32';
-    const statusBg = r.status === 'critical' ? '#ffcdd2' : r.status === 'warning' ? '#ffe0b2' : '#c8e6c9';
     
-    doc.rect(55, rowY + 2, 60, 14).fill(statusBg);
-    doc.fontSize(8).fillColor(statusColor).text(r.status.toUpperCase(), 57, rowY + 4, { width: 56, align: 'center' });
-    
-    doc.fillColor('#333').fontSize(8);
-    doc.text(r.metric.toFixed(4), 125, rowY + 4, { width: 80 });
-    doc.text(r.id, 215, rowY + 4, { width: 50 });
-    doc.text(r.name, 275, rowY + 4, { width: 250 });
-    
-    rowY += 18;
+    doc.fillColor(statusColor).fontSize(9).text(`● ${r.status.toUpperCase()}`, 50, doc.y, { continued: true, width: 80 });
+    doc.fillColor('#333').text(`  ${r.metric.toFixed(4).padStart(6)}  |  ${r.name}`, { width: pageWidth - 80 });
+    doc.moveDown(0.3);
   });
 
   doc.end();
